@@ -40,13 +40,6 @@ else:
         config.write(configfile)
     exit()
 
-    # with p.open() as api_key_file:
-    #     API_KEY = api_key_file.readline().strip()
-# else:
-#     print('config.ini file missing')
-#
-#     exit()
-
 # Logging configuration
 logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
 
@@ -58,7 +51,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Raspberry Pi pin configuration:
-LCD_RS = 27  # Note this might need to be changed to 21 for older revisi$
+LCD_RS = 27  # Note this might need to be changed to 21 for older revision
 LCD_EN = 22
 LCD_D4 = 25
 LCD_D5 = 24
@@ -84,8 +77,8 @@ while True:
         if not GPIO.input(BTN_PIN):
             lcd.set_backlight(1)
 
-            # Only download new data if last check was 1 hour ago
-            if datetime.datetime.now() - last_check > datetime.timedelta(hours=1):
+            # Only download new data if last check was 30 minutes ago
+            if datetime.datetime.now() - last_check > datetime.timedelta(minutes=30):
                 lcd.message('Downloading')
                 lcd.blink(True)
 
@@ -94,9 +87,7 @@ while True:
                         data = json.loads(response.read().decode())
                         last_check = datetime.datetime.now()
                 except URLError:
-                    lcd.clear()
-                    lcd.message('Old data')
-                    time.sleep(1.0)
+                    data = {}
 
                 # data = json.loads('{"coord":{"lon":-57.53,"lat":-25.33},'
                 #                   '"weather":[{"id":800,"man":"Clear","description":"clear sky","icon":"01n"}],'
@@ -111,8 +102,11 @@ while True:
                 lcd.clear()
                 lcd.blink(False)
 
-            lcd.message('Temp: {0} C\n{1}'.format(data['main']['temp'],
-                                                  data['weather'][0]['description'].capitalize()))
+            if data:
+                lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
+                                                    data['weather'][0]['description'].capitalize()))
+            else:
+                lcd.message('No data')
             time.sleep(5.0)
 
             lcd.set_backlight(0)
