@@ -15,22 +15,26 @@ import configparser.ConfigParser
 
 # URL configuration
 config = configparser.ConfigParser()
-config.read('config.ini')
-token = config.get('auth', 'token')
 URL = ''
-config.read('config.ini')
-url_config = config['openweathermap.com']
-CITY_ID = url_config.['city_id']
-UNITS = url_config.['units']
-API_KEY = url_config.['api_key']
-URL = 'http://api.openweathermap.org/data/2.5/weather?id={}&units={}&APPID={}'.format(CITY_ID, UNITS, API_KEY)
-# config['openweathermap.com'] = {'api_key': '', 'city_id': '', 'units': ''}
-# with open('config.ini', 'w') as configfile:
-#     config.write(configfile)
-# p = pathlib.Path('config.ini')
-# if p.is_file():
-#     with p.open() as api_key_file:
-#         API_KEY = api_key_file.readline().strip()
+
+p = pathlib.Path('config.ini')
+if p.is_file():
+    with p.open() as configfile:
+        config.read(configfile)
+        url_config = config['openweathermap.com']
+        CITY_ID = url_config['city_id']
+        UNITS = url_config['units']
+        API_KEY = url_config['api_key']
+        URL = 'http://api.openweathermap.org/data/2.5/weather?id={}&units={}&APPID={}'.format(CITY_ID, UNITS, API_KEY)
+else:
+    print('config.ini file missing, creating one now')
+    config['openweathermap.com'] = {'api_key': '', 'city_id': '', 'units': ''}
+    with p.open('w') as configfile:
+        config.write(configfile)
+    exit()
+
+    # with p.open() as api_key_file:
+    #     API_KEY = api_key_file.readline().strip()
 # else:
 #     print('config.ini file missing')
 #
