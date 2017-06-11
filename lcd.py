@@ -1,6 +1,7 @@
 # Code and ideas from https://github.com/adafruit/AdaFruit-Raspberry-Pi-Python-Code
 # and https://github.com/adafruit/Adafruit_Python_CharLCD
 
+import configparser
 import datetime
 import json
 import logging
@@ -11,7 +12,6 @@ from urllib.error import URLError
 
 import Adafruit_CharLCD as LCD
 import RPi.GPIO as GPIO
-import configparser.ConfigParser
 
 # URL configuration
 config = configparser.ConfigParser()
@@ -22,10 +22,10 @@ if p.is_file():
     with p.open() as configfile:
         config.read(configfile)
         url_config = config['openweathermap.com']
+        API_KEY = url_config['api_key']
         CITY_ID = url_config['city_id']
         UNITS = url_config['units']
-        API_KEY = url_config['api_key']
-        URL = 'http://api.openweathermap.org/data/2.5/weather?id={}&units={}&APPID={}'.format(CITY_ID, UNITS, API_KEY)
+        URL = 'http://api.openweathermap.org/data/2.5/weather?APPID={}&id={}&units={}'.format(API_KEY, CITY_ID, UNITS)
 else:
     print('config.ini file missing, creating one now')
     config['openweathermap.com'] = {'api_key': '', 'city_id': '', 'units': ''}
