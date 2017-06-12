@@ -5,6 +5,7 @@ After=network.target network-online.target
 
 [Service]
 ExecStart=pi-lcd-weather-location/venv/bin/python pi-lcd-weather-location/lcd.py  --serve-in-foreground
+WorkingDirectory=pi-lcd-weather-location
 
 [Install]
 WantedBy=multi-user.target
