@@ -9,8 +9,9 @@ virtualenv -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Copy systemd init file
-
-
-# Start service
-
+# Copy and start systemd service
+sudo cp pi-lcd-weather.service /etc/systemd/system/pi-lcd-weather.service
+sudo sed -i 's,pi-lcd-weather-location,$(pwd),g' /etc/systemd/system/pi-lcd-weather.service
+sudo systemctl daemon-reload
+sudo systemctl enable pi-lcd-weather.service
+sudo systemctl start pi-lcd-weather.service

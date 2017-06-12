@@ -1,0 +1,10 @@
+[Unit]
+Description=Pi LCD Weather service
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+ExecStart=pi-lcd-weather-location/venv/bin/python pi-lcd-weather-location/lcd.py  --serve-in-foreground
+
+[Install]
+WantedBy=multi-user.target
