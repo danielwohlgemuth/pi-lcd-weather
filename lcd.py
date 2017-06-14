@@ -13,7 +13,6 @@ from urllib.error import URLError
 import Adafruit_CharLCD as LCD
 import RPi.GPIO as GPIO
 
-
 # Button pin configuration
 BTN_PIN = 11
 # LCD pin configuration:
@@ -28,8 +27,17 @@ LCD_BACKLIGHT = 4
 LCD_COLUMNS = 16
 LCD_ROWS = 2
 
+# Initialize button
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 
 def setup_url():
+    """
+    Compose the url by reading in the parameters from a config file
+    Exits if the file or some parameter is missing
+    :return: API call url
+    """
     config = configparser.ConfigParser()
 
     p = pathlib.Path('config.ini')
@@ -55,18 +63,16 @@ def setup_url():
             config.write(configfile)
         exit()
 
+
 URL = setup_url()
 
 # Logging configuration
 logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
+logging.basicConfig(filename='weather.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
 
 
 def setup_lcd():
-    global BTN_PIN, LCD_D4, LCD_D5, LCD_D6, LCD_D7, LCD_BACKLIGHT, LCD_COLUMNS, LCD_ROWS
-
-    # Initialize button
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    global LCD_D4, LCD_D5, LCD_D6, LCD_D7, LCD_BACKLIGHT, LCD_COLUMNS, LCD_ROWS
 
     # Initialize the LCD
     lcd = LCD.Adafruit_CharLCD(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7,
@@ -76,25 +82,32 @@ def setup_lcd():
 
     return lcd
 
-lcd = setup_lcd()
 
 data = {}
+last_lcd_setup = datetime.datetime(1, 1, 1)
 last_check = datetime.datetime(1, 1, 1)
 
 while True:
     try:
         if not GPIO.input(BTN_PIN):
+            datetime_now = datetime.datetime.now()
+
+            # Display glitches after some time of inactivity
+            if datetime_now - last_lcd_setup > datetime.timedelta(hours=6):
+                lcd = setup_lcd()
+                last_lcd_setup = datetime_now
+
             lcd.set_backlight(1)
 
             # Only download new data if last check was 30 minutes ago
-            if datetime.datetime.now() - last_check > datetime.timedelta(minutes=30):
+            if datetime_now - last_check > datetime.timedelta(minutes=30):
                 lcd.message('Downloading')
                 lcd.blink(True)
 
                 try:
                     with urllib.request.urlopen(URL) as response:
                         data = json.loads(response.read().decode())
-                        last_check = datetime.datetime.now()
+                        last_check = datetime_now
                 except URLError:
                     data = {}
 
@@ -114,12 +127,14 @@ while True:
             if data:
                 lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
                                                     data['weather'][0]['description'].capitalize()))
+                logging.debug(data)
             else:
                 lcd.message('No data')
             time.sleep(5.0)
 
             lcd.set_backlight(0)
             lcd.clear()
+
     except KeyboardInterrupt:
         break
     except BaseException as e:
