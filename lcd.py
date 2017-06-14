@@ -31,6 +31,10 @@ LCD_ROWS = 2
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+# Logging configuration
+logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
+logging.basicConfig(filename='weather.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
+
 
 def setup_url():
     """
@@ -66,10 +70,6 @@ def setup_url():
 
 URL = setup_url()
 
-# Logging configuration
-logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
-logging.basicConfig(filename='weather.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
-
 
 def setup_lcd():
     global LCD_D4, LCD_D5, LCD_D6, LCD_D7, LCD_BACKLIGHT, LCD_COLUMNS, LCD_ROWS
@@ -84,56 +84,65 @@ def setup_lcd():
 
 
 data = {}
+lcd = None
 last_lcd_setup = datetime.datetime(1, 1, 1)
 last_check = datetime.datetime(1, 1, 1)
 
+
+def show_weather():
+    global data, lcd, last_lcd_setup, last_check
+
+    datetime_now = datetime.datetime.now()
+
+    # Display glitches after some time of inactivity
+    if datetime_now - last_lcd_setup > datetime.timedelta(hours=6):
+        lcd = setup_lcd()
+        last_lcd_setup = datetime_now
+
+    lcd.set_backlight(1)
+
+    # Only download new data if last check was 30 minutes ago
+    if datetime_now - last_check > datetime.timedelta(minutes=30):
+        lcd.message('Downloading')
+        lcd.blink(True)
+
+        try:
+            with urllib.request.urlopen(URL) as response:
+                data = json.loads(response.read().decode())
+                last_check = datetime_now
+        except URLError:
+            data = {}
+
+        # data = json.loads('{"coord":{"lon":-57.53,"lat":-25.33},'
+        #                   '"weather":[{"id":800,"man":"Clear","description":"clear sky","icon":"01n"}],'
+        #                   '"base":"stations",'
+        #                   '"main":{"temp":7,"pressure":1015,"humidity":100,"temp_min":7,"temp_max":7},'
+        #                   '"visibility":10000,"wind":{"speed":3.06,"deg":78.0048},'
+        #                   '"clouds":{"all":0},"dt":1497160800,"sys":{"type":1,"id":4608,"message":0.3824,'
+        #                   '"country":"PY","sunrise":1497177146,"sunset":1497215239},"id":3437056,'
+        #                   '"name":"San Lorenzo","cod":200}')
+        # print(data)
+
+        lcd.clear()
+        lcd.blink(False)
+
+    if data:
+        lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
+                                            data['weather'][0]['description'].capitalize()))
+        logging.debug(data)
+    else:
+        lcd.message('No data')
+    time.sleep(5.0)
+
+    lcd.set_backlight(0)
+    lcd.clear()
+
+
+GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=300)
+
 while True:
     try:
-        if not GPIO.input(BTN_PIN):
-            datetime_now = datetime.datetime.now()
-
-            # Display glitches after some time of inactivity
-            if datetime_now - last_lcd_setup > datetime.timedelta(hours=6):
-                lcd = setup_lcd()
-                last_lcd_setup = datetime_now
-
-            lcd.set_backlight(1)
-
-            # Only download new data if last check was 30 minutes ago
-            if datetime_now - last_check > datetime.timedelta(minutes=30):
-                lcd.message('Downloading')
-                lcd.blink(True)
-
-                try:
-                    with urllib.request.urlopen(URL) as response:
-                        data = json.loads(response.read().decode())
-                        last_check = datetime_now
-                except URLError:
-                    data = {}
-
-                # data = json.loads('{"coord":{"lon":-57.53,"lat":-25.33},'
-                #                   '"weather":[{"id":800,"man":"Clear","description":"clear sky","icon":"01n"}],'
-                #                   '"base":"stations",'
-                #                   '"main":{"temp":7,"pressure":1015,"humidity":100,"temp_min":7,"temp_max":7},'
-                #                   '"visibility":10000,"wind":{"speed":3.06,"deg":78.0048},'
-                #                   '"clouds":{"all":0},"dt":1497160800,"sys":{"type":1,"id":4608,"message":0.3824,'
-                #                   '"country":"PY","sunrise":1497177146,"sunset":1497215239},"id":3437056,'
-                #                   '"name":"San Lorenzo","cod":200}')
-                # print(data)
-
-                lcd.clear()
-                lcd.blink(False)
-
-            if data:
-                lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
-                                                    data['weather'][0]['description'].capitalize()))
-                logging.debug(data)
-            else:
-                lcd.message('No data')
-            time.sleep(5.0)
-
-            lcd.set_backlight(0)
-            lcd.clear()
+        input()
 
     except KeyboardInterrupt:
         break
@@ -142,3 +151,6 @@ while True:
     finally:
         lcd.set_backlight(0)
         lcd.clear()
+        GPIO.cleanup()
+
+GPIO.cleanup()
