@@ -89,7 +89,12 @@ last_lcd_setup = datetime.datetime(1, 1, 1)
 last_check = datetime.datetime(1, 1, 1)
 
 
-def show_weather():
+def show_weather(_):
+    """
+    Gets and displays the current weather on the LCD
+    :param _: Channel that caused the interrupt, not used
+    :return:
+    """
     global data, lcd, last_lcd_setup, last_check
 
     datetime_now = datetime.datetime.now()
