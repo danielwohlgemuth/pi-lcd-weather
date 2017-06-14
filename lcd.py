@@ -14,6 +14,21 @@ import Adafruit_CharLCD as LCD
 import RPi.GPIO as GPIO
 
 
+# Button pin configuration
+BTN_PIN = 11
+# LCD pin configuration:
+LCD_RS = 27  # Note this might need to be changed to 21 for older revision
+LCD_EN = 22
+LCD_D4 = 25
+LCD_D5 = 24
+LCD_D6 = 23
+LCD_D7 = 18
+LCD_BACKLIGHT = 4
+# Define LCD column and row size for 16x2 LCD.
+LCD_COLUMNS = 16
+LCD_ROWS = 2
+
+
 def setup_url():
     config = configparser.ConfigParser()
 
@@ -45,31 +60,23 @@ URL = setup_url()
 # Logging configuration
 logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
 
-# Button pin configuration
-BTN_PIN = 11
 
-# Initialize button
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+def setup_lcd():
+    global BTN_PIN, LCD_D4, LCD_D5, LCD_D6, LCD_D7, LCD_BACKLIGHT, LCD_COLUMNS, LCD_ROWS
 
-# Raspberry Pi pin configuration:
-LCD_RS = 27  # Note this might need to be changed to 21 for older revision
-LCD_EN = 22
-LCD_D4 = 25
-LCD_D5 = 24
-LCD_D6 = 23
-LCD_D7 = 18
-LCD_BACKLIGHT = 4
+    # Initialize button
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-# Define LCD column and row size for 16x2 LCD.
-LCD_COLUMNS = 16
-LCD_ROWS = 2
+    # Initialize the LCD
+    lcd = LCD.Adafruit_CharLCD(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7,
+                               LCD_COLUMNS, LCD_ROWS, LCD_BACKLIGHT)
+    lcd.set_backlight(0)
+    lcd.clear()
 
-# Initialize the LCD using the pins above.
-lcd = LCD.Adafruit_CharLCD(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7,
-                           LCD_COLUMNS, LCD_ROWS, LCD_BACKLIGHT)
-lcd.set_backlight(0)
-lcd.clear()
+    return lcd
+
+lcd = setup_lcd()
 
 data = {}
 last_check = datetime.datetime(1, 1, 1)
