@@ -33,7 +33,6 @@ GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Logging configuration
 logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
-logging.basicConfig(filename='weather.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
 
 
 def setup_url():
@@ -115,6 +114,7 @@ def show_weather(_):
             with urllib.request.urlopen(URL) as response:
                 data = json.loads(response.read().decode())
                 last_check = datetime_now
+                logging.debug(data)
         except URLError:
             data = {}
 
@@ -134,7 +134,6 @@ def show_weather(_):
     if data:
         lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
                                             data['weather'][0]['description'].capitalize()))
-        logging.debug(data)
     else:
         lcd.message('No data')
     time.sleep(5.0)
