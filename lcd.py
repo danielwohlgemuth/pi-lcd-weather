@@ -13,32 +13,34 @@ from urllib.error import URLError
 import Adafruit_CharLCD as LCD
 import RPi.GPIO as GPIO
 
-# URL configuration
-config = configparser.ConfigParser()
-URL = ''
 
-p = pathlib.Path('config.ini')
-if p.is_file():
-    config.read('config.ini')
-    url_config = config['openweathermap.com']
-    API_KEY = url_config['api_key']
-    CITY_ID = url_config['city_id']
-    UNITS = url_config['units']
-    if not API_KEY or not CITY_ID or not UNITS:
-        if not API_KEY:
-            print('Missing api_key value in config.ini file')
-        if not CITY_ID:
-            print('Missing city_id value in config.ini file')
-        if not UNITS:
-            print('Missing units value in config.ini file')
+def setup_url():
+    config = configparser.ConfigParser()
+
+    p = pathlib.Path('config.ini')
+    if p.is_file():
+        config.read('config.ini')
+        url_config = config['openweathermap.com']
+        api_key = url_config['api_key']
+        city_id = url_config['city_id']
+        units = url_config['units']
+        if not api_key or not city_id or not units:
+            if not api_key:
+                print('Missing api_key value in config.ini file')
+            if not city_id:
+                print('Missing city_id value in config.ini file')
+            if not units:
+                print('Missing units value in config.ini file')
+            exit()
+        return 'http://api.openweathermap.org/data/2.5/weather?APPID={}&id={}&units={}'.format(api_key, city_id, units)
+    else:
+        print('config.ini file missing, creating one now')
+        config['openweathermap.com'] = {'api_key': '', 'city_id': '', 'units': ''}
+        with p.open('w') as configfile:
+            config.write(configfile)
         exit()
-    URL = 'http://api.openweathermap.org/data/2.5/weather?APPID={}&id={}&units={}'.format(API_KEY, CITY_ID, UNITS)
-else:
-    print('config.ini file missing, creating one now')
-    config['openweathermap.com'] = {'api_key': '', 'city_id': '', 'units': ''}
-    with p.open('w') as configfile:
-        config.write(configfile)
-    exit()
+
+URL = setup_url()
 
 # Logging configuration
 logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
