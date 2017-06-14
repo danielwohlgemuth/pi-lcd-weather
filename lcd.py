@@ -146,7 +146,7 @@ GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=3
 
 while True:
     try:
-        input()
+        time.sleep(1000)
 
     except KeyboardInterrupt:
         break
