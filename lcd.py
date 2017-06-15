@@ -27,13 +27,6 @@ LCD_BACKLIGHT = 4
 LCD_COLUMNS = 16
 LCD_ROWS = 2
 
-# Initialize button
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# Logging configuration
-logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
-
 
 def setup_url():
     """
@@ -67,9 +60,6 @@ def setup_url():
         exit()
 
 
-URL = setup_url()
-
-
 def setup_lcd():
     global LCD_D4, LCD_D5, LCD_D6, LCD_D7, LCD_BACKLIGHT, LCD_COLUMNS, LCD_ROWS
 
@@ -80,12 +70,6 @@ def setup_lcd():
     lcd.clear()
 
     return lcd
-
-
-data = {}
-lcd = None
-last_lcd_setup = datetime.datetime(1, 1, 1)
-last_check = datetime.datetime(1, 1, 1)
 
 
 def show_weather(_):
@@ -142,22 +126,34 @@ def show_weather(_):
     lcd.clear()
 
 
-# GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=300)
+# Logging configuration
+logging.basicConfig(filename='lcd.log', format='%(asctime)s : %(lineno)d - %(message)s', level=logging.DEBUG)
 
-while True:
-    try:
+try:
+    GPIO.setmode(GPIO.BCM)
+    # Initialize button
+    GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    URL = setup_url()
+
+    data = {}
+    lcd = None
+    last_lcd_setup = datetime.datetime(1, 1, 1)
+    last_check = datetime.datetime(1, 1, 1)
+
+    # GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=300)
+
+    while True:
         # time.sleep(3600)
         channel = GPIO.wait_for_edge(BTN_PIN, GPIO.FALLING, bouncetime=300, timeout=3600000)
         if channel:
             show_weather(BTN_PIN)
 
-    except KeyboardInterrupt:
-        break
-    except BaseException as e:
-        logging.warning(repr(e))
-    finally:
-        lcd.set_backlight(0)
-        lcd.clear()
-        GPIO.cleanup()
-
-GPIO.cleanup()
+except KeyboardInterrupt:
+    pass
+except BaseException as e:
+    logging.warning(repr(e))
+finally:
+    lcd.set_backlight(0)
+    lcd.clear()
+    GPIO.cleanup()
