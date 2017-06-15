@@ -32,7 +32,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(BTN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Logging configuration
-logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.WARNING)
+logging.basicConfig(filename='lcd.log', format='%(asctime)s - %(message)s', level=logging.DEBUG)
 
 
 def setup_url():
@@ -142,11 +142,14 @@ def show_weather(_):
     lcd.clear()
 
 
-GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=300)
+# GPIO.add_event_detect(BTN_PIN, GPIO.FALLING, callback=show_weather, bouncetime=300)
 
 while True:
     try:
-        time.sleep(1000)
+        # time.sleep(3600)
+        channel = GPIO.wait_for_edge(BTN_PIN, GPIO.FALLING, bouncetime=300, timeout=3600000)
+        if channel:
+            show_weather(BTN_PIN)
 
     except KeyboardInterrupt:
         break
