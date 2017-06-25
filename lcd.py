@@ -83,7 +83,7 @@ def show_weather(_):
     datetime_now = datetime.datetime.now()
 
     # Display glitches after some time of inactivity
-    if datetime_now - last_lcd_setup > datetime.timedelta(hours=6):
+    if datetime_now - last_lcd_setup > datetime.timedelta(hours=3):
         lcd = setup_lcd()
         last_lcd_setup = datetime_now
 
