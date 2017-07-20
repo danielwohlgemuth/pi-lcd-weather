@@ -16,8 +16,8 @@ import RPi.GPIO as GPIO
 # Button pin configuration
 BTN_PIN = 11
 # LCD pin configuration:
-LCD_RS = 27  # Note this might need to be changed to 21 for older revision
-LCD_EN = 22
+LCD_RS = 22
+LCD_EN = 17
 LCD_D4 = 25
 LCD_D5 = 24
 LCD_D6 = 23

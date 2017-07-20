@@ -3,6 +3,10 @@
 This project uses a Raspberry Pi to show the current weather pulled from 
 [OpenWeatherMap](http://www.openweathermap.com/) on an 16x2 LCD
 
+#### Layout
+The Fritzing file can be found in the images folder 
+![Layout](images/layout_bb.jpg)
+
 #### Final result
 ![Final result](images/pi-lcd-weather.jpg)
 
