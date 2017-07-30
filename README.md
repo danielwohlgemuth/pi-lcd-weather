@@ -1,17 +1,17 @@
 # Pi LCD Weather
 
-This project uses a Raspberry Pi to show the current weather pulled from 
+This project uses a Raspberry Pi to show the current weather downloaded from 
 [OpenWeatherMap](http://www.openweathermap.com/) on an 16x2 LCD
 
 #### Layout
-The Fritzing file can be found in the images folder 
+The corresponding Fritzing file can be found in the images folder 
 ![Layout](images/layout_bb.jpg)
 
 #### Final result
 ![Final result](images/pi-lcd-weather.jpg)
 
 #### Setup
-The software part of this project can be configured by running the `setup.sh` script file 
+The initial configuration of this project can be made by running the `setup.sh` script file with 
     
     source setup.sh
     

@@ -49,7 +49,7 @@ def setup_url():
             if not city_id:
                 logging.warning('Missing city_id value in config.ini file')
             if not units:
-                logging.warning('Missing units value in config.ini file')
+                logging.warning('Missing units value (metric or imperial) in config.ini file')
             exit()
         return 'http://api.openweathermap.org/data/2.5/weather?APPID={}&id={}&units={}'.format(api_key, city_id, units)
     else:
@@ -70,6 +70,13 @@ def setup_lcd():
     lcd.clear()
 
     return lcd
+
+
+# From https://stackoverflow.com/a/7490772
+def deg_to_compass(num):
+    val = int((num / 22.5) + .5)
+    arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    return arr[(val % 16)]
 
 
 def show_weather(_):
@@ -103,7 +110,7 @@ def show_weather(_):
             data = {}
 
         # data = json.loads('{"coord":{"lon":-57.53,"lat":-25.33},'
-        #                   '"weather":[{"id":800,"man":"Clear","description":"clear sky","icon":"01n"}],'
+        #                   '"weather":[{"id":800,"main":"Clear","description":"clear sky","icon":"01n"}],'
         #                   '"base":"stations",'
         #                   '"main":{"temp":7,"pressure":1015,"humidity":100,"temp_min":7,"temp_max":7},'
         #                   '"visibility":10000,"wind":{"speed":3.06,"deg":78.0048},'
@@ -116,8 +123,11 @@ def show_weather(_):
         lcd.blink(False)
 
     if data:
-        lcd.message('Temp: {0}\n{1}'.format(data['main']['temp'],
-                                            data['weather'][0]['description'].capitalize()))
+        lcd.message('T:{}  P:{}\nH:{}  W:{} {}'.format(data['main']['temp'],
+                                                        data['main']['pressure'],
+                                                        data['main']['humidity'],
+                                                        int(data['wind']['speed']),
+                                                        deg_to_compass(data['wind']['deg'])))
     else:
         lcd.message('No data')
     time.sleep(5.0)
@@ -127,7 +137,7 @@ def show_weather(_):
 
 
 # Logging configuration
-logging.basicConfig(filename='lcd.log', format='%(asctime)s : %(lineno)d - %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename='lcd.log', format='%(asctime)s : %(lineno)d - %(message)s', level=logging.WARNING)
 
 try:
     GPIO.setmode(GPIO.BCM)
