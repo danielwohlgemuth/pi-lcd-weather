@@ -74,6 +74,9 @@ def setup_lcd():
 
 # From https://stackoverflow.com/a/7490772
 def deg_to_compass(num):
+    # In case there is no wind direction
+    if not num:
+        return ''
     val = int((num / 22.5) + .5)
     arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     return arr[(val % 16)]
@@ -124,10 +127,10 @@ def show_weather(_):
 
     if data:
         lcd.message('T:{}  P:{}\nH:{}  W:{} {}'.format(data['main']['temp'],
-                                                        data['main']['pressure'],
-                                                        data['main']['humidity'],
-                                                        int(data['wind']['speed']),
-                                                        deg_to_compass(data['wind']['deg'])))
+                                                       data['main']['pressure'],
+                                                       data['main']['humidity'],
+                                                       int(data['wind']['speed']),
+                                                       deg_to_compass(data['wind'].get('deg', None))))
     else:
         lcd.message('No data')
     time.sleep(5.0)
