@@ -5,7 +5,13 @@ This project uses a Raspberry Pi to show the current weather downloaded from
 
 #### Layout
 The corresponding Fritzing file can be found in the images folder.
+
+##### Raspberry Pi
 ![Layout](images/layout_bb.jpg)
+
+##### Raspberry Pi 2 and 3
+![Layout](images/layout-rpi2-3_bb.jpg)
+
 To check if the display was connected correctly the `simple_lcd.py` script can be used.
 It contains just the minimal configuration to show a message on the display.
 
